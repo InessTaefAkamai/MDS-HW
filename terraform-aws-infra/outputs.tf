@@ -1,35 +1,49 @@
-output "eks_cluster_id" {
-  value = module.eks.eks_cluster_id
+output "eks_cluster_name" {
+  description = "EKS cluster name"
+  value       = module.eks.cluster_name
 }
 
 output "eks_cluster_endpoint" {
-  value = module.eks.eks_cluster_endpoint
+  description = "EKS cluster endpoint"
+  value       = module.eks.cluster_endpoint
 }
 
 output "rds_endpoint" {
-  value = module.rds.rds_endpoint
-}
-
-output "security_group_id" {
-  value = module.security.security_group_id
-}
-
-output "route53_zone_id" {
-  value = module.route53.route53_zone_id
+  description = "RDS database endpoint"
+  value       = module.rds.db_instance_endpoint
 }
 
 output "s3_bucket_name" {
-  value = module.s3.s3_bucket_name
+  description = "S3 bucket for static content"
+  value       = module.s3.bucket_name
 }
 
-output "waf_acl_id" {
-  value = module.waf.waf_acl_id
-}
-
-output "alb_dns_name" {
-  value = module.load_balancer.alb_dns_name
+output "cloudfront_distribution_domain_name" {
+  description = "CloudFront distribution domain name"
+  value       = module.cloudfront.cloudfront_distribution_domain_name
 }
 
 output "api_gateway_url" {
-  value = module.api_gateway.api_gateway_url
+  description = "API Gateway URL"
+  value       = module.api_gateway.invoke_url
+}
+
+output "load_balancer_dns" {
+  description = "Load balancer DNS name"
+  value       = module.load_balancer.alb_dns_name
+}
+
+output "route53_domain_name" {
+  description = "Route 53 domain name"
+  value       = module.route53.domain_name
+}
+
+output "secrets_manager_arn" {
+  description = "ARN of the Secrets Manager secret"
+  value       = module.secrets_manager.secret_arn
+}
+
+output "cloudwatch_log_group" {
+  description = "CloudWatch log group"
+  value       = module.cloudwatch.log_group_name
 }

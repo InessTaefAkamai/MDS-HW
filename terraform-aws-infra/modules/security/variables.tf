@@ -1,25 +1,37 @@
+# --------------------------------------
+# VPC & Subnet Configuration
+# --------------------------------------
 variable "vpc_id" {
-  description = "The VPC ID where security groups will be created"
+  description = "VPC ID for security groups"
   type        = string
 }
 
-variable "allowed_ingress_cidr_blocks" {
-  description = "List of CIDR blocks allowed for inbound traffic"
-  type        = list(string)
-  default     = ["0.0.0.0/0"]
+# --------------------------------------
+# Security Group Dependencies
+# --------------------------------------
+variable "application_sg_id" {
+  description = "Security Group ID for application services (EKS, EC2, Lambda)"
+  type        = string
 }
 
+# --------------------------------------
+# Database Configuration
+# --------------------------------------
 variable "db_port" {
-  description = "The port number for the database (e.g., MySQL, PostgreSQL)"
+  description = "Port for the database engine"
   type        = number
-  default     = 3306
+  default     = 5432
 }
 
-variable "tags" {
-  description = "Tags to apply to security resources"
-  type        = map(string)
-  default     = {
-    Environment = "production"
-    Project     = "Cat-Health-Monitoring"
-  }
+# --------------------------------------
+# WAF Configuration
+# --------------------------------------
+variable "waf_blocklist_ip_set_arn" {
+  description = "ARN of the IP set for blocking bad actors"
+  type        = string
+}
+
+variable "alb_arn" {
+  description = "ARN of the ALB to associate with WAF"
+  type        = string
 }

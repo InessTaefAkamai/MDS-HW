@@ -1,10 +1,16 @@
-### secrets-manager/main.tf
-
-resource "aws_secretsmanager_secret" "db_credentials" {
-  name = var.secret_name
+# --------------------------------------
+# AWS Secrets Manager Secret
+# --------------------------------------
+resource "aws_secretsmanager_secret" "secrets" {
+  name                    = var.secret_name
+  description             = "Secrets for ${var.secret_name}"
+  recovery_window_in_days = var.recovery_window_in_days
 }
 
-resource "aws_secretsmanager_secret_version" "db_credentials_version" {
-  secret_id     = aws_secretsmanager_secret.db_credentials.id
-  secret_string = jsonencode({ username = var.db_username, password = var.db_password })
+# --------------------------------------
+# AWS Secrets Manager Secret Value
+# --------------------------------------
+resource "aws_secretsmanager_secret_version" "secret_version" {
+  secret_id     = aws_secretsmanager_secret.secrets.id
+  secret_string = jsonencode(var.secret_values)
 }

@@ -1,25 +1,60 @@
-### waf/main.tf
-
-# Create a WAF Web ACL
+# --------------------------------------
+# AWS WAF Web ACL
+# --------------------------------------
 resource "aws_wafv2_web_acl" "waf_acl" {
-  name        = var.waf_name
-  description = "Web ACL for protecting ALB and API Gateway"
-  scope       = "REGIONAL"  # Use "REGIONAL" for ALB/API Gateway, "CLOUDFRONT" for CloudFront
+  name  = var.waf_name
+  scope = "REGIONAL"  # Use "CLOUDFRONT" for Global WAF
 
   default_action {
     allow {}
   }
 
-  visibility_config {
-    cloudwatch_metrics_enabled = true
-    metric_name                = "WAFACLMetric"
-    sampled_requests_enabled   = true
+  rule {
+    name     = "BlockBadIPs"
+    priority = 1
+
+    action {
+      block {}
+    }
+
+    statement {
+      ip_set_reference_statement {
+        arn = var.ip_set_arn
+      }
+    }
+
+    visibility_config {
+      sampled_requests_enabled   = true
+      cloudwatch_metrics_enabled = true
+      metric_name                = "BlockBadIPs"
+    }
   }
 
-  # Rule to block SQL Injection
   rule {
-    name     = "SQLInjectionRule"
-    priority = 1
+    name     = "RateLimitProtection"
+    priority = 2
+
+    action {
+      block {}
+    }
+
+    statement {
+      rate_based_statement {
+        limit              = var.rate_limit
+        aggregate_key_type = "IP"
+      }
+    }
+
+    visibility_config {
+      sampled_requests_enabled   = true
+      cloudwatch_metrics_enabled = true
+      metric_name                = "RateLimitProtection"
+    }
+  }
+
+  rule {
+    name     = "SQLInjectionProtection"
+    priority = 3
 
     action {
       block {}
@@ -28,31 +63,60 @@ resource "aws_wafv2_web_acl" "waf_acl" {
     statement {
       sqli_match_statement {
         field_to_match {
-          all_query_arguments = {}
+          query_string {}
         }
         text_transformation {
-          priority = 1
+          priority = 0
           type     = "URL_DECODE"
         }
       }
     }
 
     visibility_config {
-      cloudwatch_metrics_enabled = true
-      metric_name                = "SQLInjectionMetric"
       sampled_requests_enabled   = true
+      cloudwatch_metrics_enabled = true
+      metric_name                = "SQLInjectionProtection"
     }
+  }
+
+  rule {
+    name     = "XSSProtection"
+    priority = 4
+
+    action {
+      block {}
+    }
+
+    statement {
+      xss_match_statement {
+        field_to_match {
+          query_string {}
+        }
+        text_transformation {
+          priority = 0
+          type     = "URL_DECODE"
+        }
+      }
+    }
+
+    visibility_config {
+      sampled_requests_enabled   = true
+      cloudwatch_metrics_enabled = true
+      metric_name                = "XSSProtection"
+    }
+  }
+
+  visibility_config {
+    sampled_requests_enabled   = true
+    cloudwatch_metrics_enabled = true
+    metric_name                = "WAFWebACL"
   }
 }
 
-# Associate WAF with ALB
+# --------------------------------------
+# AWS WAF Web ACL Association with ALB
+# --------------------------------------
 resource "aws_wafv2_web_acl_association" "waf_alb_association" {
   resource_arn = var.alb_arn
-  web_acl_arn  = aws_wafv2_web_acl.waf_acl.arn
-}
-
-# Associate WAF with API Gateway
-resource "aws_wafv2_web_acl_association" "waf_apigw_association" {
-  resource_arn = var.api_gateway_arn
   web_acl_arn  = aws_wafv2_web_acl.waf_acl.arn
 }

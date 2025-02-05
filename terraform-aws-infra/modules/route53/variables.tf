@@ -1,62 +1,65 @@
-# Create an S3 bucket
-resource "aws_s3_bucket" "s3_bucket" {
-  bucket = var.bucket_name
-
-  tags = var.tags
+# --------------------------------------
+# Domain Configuration
+# --------------------------------------
+variable "domain_name" {
+  description = "The primary domain name"
+  type        = string
 }
 
-# Enable versioning (optional)
-resource "aws_s3_bucket_versioning" "versioning" {
-  bucket = aws_s3_bucket.s3_bucket.id
-  versioning_configuration {
-    status = var.versioning_enabled ? "Enabled" : "Disabled"
-  }
+# --------------------------------------
+# ALB DNS Configuration
+# --------------------------------------
+variable "alb_dns_name" {
+  description = "DNS name of the ALB"
+  type        = string
 }
 
-# Enable server-side encryption
-resource "aws_s3_bucket_server_side_encryption_configuration" "encryption" {
-  bucket = aws_s3_bucket.s3_bucket.id
-
-  rule {
-    apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
-    }
-  }
+variable "alb_zone_id" {
+  description = "Zone ID of the ALB"
+  type        = string
 }
 
-# Configure public access block
-resource "aws_s3_bucket_public_access_block" "public_access" {
-  bucket = aws_s3_bucket.s3_bucket.id
-
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
+# --------------------------------------
+# CloudFront DNS Configuration (Optional)
+# --------------------------------------
+variable "create_cloudfront_record" {
+  description = "Flag to create a CloudFront CNAME record"
+  type        = bool
+  default     = false
 }
 
-# Attach an S3 Bucket Policy (if needed)
-resource "aws_s3_bucket_policy" "bucket_policy" {
-  bucket = aws_s3_bucket.s3_bucket.id
-  policy = <<POLICY
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "EnforceSSL",
-      "Effect": "Deny",
-      "Principal": "*",
-      "Action": "s3:*",
-      "Resource": [
-        "arn:aws:s3:::${var.bucket_name}",
-        "arn:aws:s3:::${var.bucket_name}/*"
-      ],
-      "Condition": {
-        "Bool": {
-          "aws:SecureTransport": "false"
-        }
-      }
-    }
-  ]
+variable "cloudfront_distribution_domain_name" {
+  description = "CloudFront distribution domain name"
+  type        = string
+  default     = ""
 }
-POLICY
+
+# --------------------------------------
+# MX Record Configuration (Optional)
+# --------------------------------------
+variable "create_mx_record" {
+  description = "Flag to create an MX record for email services"
+  type        = bool
+  default     = false
+}
+
+variable "mx_records" {
+  description = "List of MX records for the domain"
+  type        = list(string)
+  default     = ["10 mail.example.com"]
+}
+
+# --------------------------------------
+# TXT Record Configuration (Optional)
+# --------------------------------------
+variable "create_txt_record" {
+  description = "Flag to create a TXT record for domain verification"
+  type        = bool
+  default     = false
+}
+
+variable "txt_records" {
+  description = "List of TXT records for the domain"
+  type        = list(string)
+  default     = ["v=spf1 include:_spf.example.com ~all"]
 }
