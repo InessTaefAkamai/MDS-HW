@@ -1,0 +1,22 @@
+Authentication Flow
+1. User Accesses the Website (via CloudFront)
+2. The user visits the website, which is hosted via CloudFront.
+3.User Requests Authentication
+When the user tries to log in, the frontend sends a request to API Gateway
+API Gateway forwards this request to Okta ( Okta is authentication provider).
+4. Authentication via Okta
+using Okta, the user is redirected to the Okta login page.
+The user provides email & password, which are validated. (non SSO)
+
+5. User Receives an Access Token
+After successful authentication, Okta returns a JWT (JSON Web Token) to the frontend.
+This JWT token is used to authenticate future API requests.
+6. Token Verification
+The frontend includes the JWT token in all API requests.
+API Gateway validates the JWT token using Okta OAuth 2.0.
+If the token is valid, the request is forwarded
+If authentication fails, API Gateway returns an HTTP 401 Unauthorized response.
+
+
+
+
